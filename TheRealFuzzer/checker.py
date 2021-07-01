@@ -22,3 +22,11 @@ def check_type(text):
             #     return 'pdf'
             else:
                 return 'txt'
+
+def check_seg_fault(p):
+    p.proc.stdin.close()
+    
+    if p.poll(block = True) == -11:
+        return True
+    
+    return False

@@ -6,7 +6,7 @@ import logging
 import argparse
 
 import runner as r
-import strategy.csv_fuzz
+from strategy.csv_fuzz import *
 from checker import check_type
 
 class Fuzzer():
@@ -17,10 +17,17 @@ class Fuzzer():
 
     def run(self):
         self.runner.set_binary(binary)
-        self.runner.set_input_file(input_file)
-        self.runner.set_type(check_type(input_file))
+        # self.runner.set_input_file(input_file)
 
-        return self.runner.run_process()
+        bad_input = ''
+
+        if check_type(input_file) == 'csv':
+            # remove delimiters
+            bad_input = vary_delimiters(self.runner, self.input_file)
+            # expand file strategy --> WORKS
+            bad_input = expand_file(self.runner, self.input_file)
+
+        return bad_input
 
 
 
@@ -30,9 +37,11 @@ def main(binary, input_file):
     fuzzer = Fuzzer(binary, input_file, runner)
 
 
-    print(fuzzer.run())
+    payload = fuzzer.run()
 
-    return # bad.txt files
+    if payload != None:
+        with open('./bad.txt', 'w') as f:
+            f.write(payload)
 
 
 if __name__ == "__main__":
