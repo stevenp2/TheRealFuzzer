@@ -22,11 +22,12 @@ class Fuzzer():
         bad_input = ''
 
         if check_type(input_file) == 'csv':
+            content, delimiter = read_csv_input(input_file)
             # remove delimiters
-            bad_input = vary_delimiters(self.runner, self.input_file)
+            bad_input = vary_delimiters(self.runner, content, delimiter)
             # expand file strategy --> WORKS
-            bad_input = expand_file(self.runner, self.input_file)
-
+            bad_input = expand_file(self.runner, content, delimiter)
+            
         return bad_input
 
 
