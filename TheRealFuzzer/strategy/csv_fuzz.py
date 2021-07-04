@@ -30,11 +30,15 @@ def vary_delimiters(Runner, content, delimiter):
 def expand_file(Runner, content, delimiter):
     payload = ''
 
-    if Runner.run_process(payload)[0]:
-        return payload
+    # Empty file
+    run = Runner.run_process(payload)
+    if run:
+        if run[0]:
+            return payload
 
     for i in range (0,50):
         payload += content
-        if Runner.run_process(payload)[0]:
-            return payload
-
+        run = Runner.run_process(payload)
+        if run: 
+            if run[0]:
+                return payload
