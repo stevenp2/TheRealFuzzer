@@ -19,20 +19,22 @@ def read_csv_input(text_input):
 # Simple strategy - have fun with delimiters
 def vary_delimiters(Runner, content, delimiter):
 
-    try_delimiters = ['|', 'a', '', '@', '🐒', 'word', '水']
+    try_delimiters = ['|', 'a', '', '@', '🐒', 'word', '水', '水水水']
 
     for d in try_delimiters:
-        result = content.replace(delimiter, d)
-        if Runner.run_process(result):
-            return result
+        payload = content.replace(delimiter, d)
+        if Runner.run_process(payload):
+            return payload
         
-# Simple strategy - expand file size
+# Simple strategy - expand file size from empty
 def expand_file(Runner, content, delimiter):
-    content = ''
-    result = ''
+    payload = ''
+
+    if Runner.run_process(payload)[0]:
+        return payload
 
     for i in range (0,50):
-        result += content
-        if Runner.run_process(result):
-            return result
+        payload += content
+        if Runner.run_process(payload)[0]:
+            return payload
 

@@ -15,9 +15,9 @@ class Runner:
         # payload = self.craft_payload()
         with process(self.binary) as p:
             p.send(payload)
-
             if check_seg_fault(p):
-                return payload
+                # Accounts for empty payload being returned
+                return (True, payload)
 
 
     def set_binary(self, binary_file):

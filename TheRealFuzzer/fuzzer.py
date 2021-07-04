@@ -23,6 +23,7 @@ class Fuzzer():
 
         if check_type(input_file) == 'csv':
             content, delimiter = read_csv_input(input_file)
+
             # remove delimiters
             bad_input = vary_delimiters(self.runner, content, delimiter)
             # expand file strategy --> WORKS
