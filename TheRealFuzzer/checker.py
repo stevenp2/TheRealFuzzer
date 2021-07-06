@@ -3,6 +3,7 @@ import json
 
 def _is_csv(file):
     try:
+        file.seek(0)
         dialect = csv.Sniffer().sniff(file.read(1024))
     except:
         return False
@@ -11,6 +12,7 @@ def _is_csv(file):
 
 def _is_json(file):
     try:
+        file.seek(0)
         json_file = json.load(file)
     except:
         return False
@@ -24,10 +26,11 @@ def check_type(text):
             #     return 'jpeg'
             # elif is_elf(text):
             #     return 'elf'
-            elif _is_csv(f):
-                return 'csv'
             # elif is_pdf(text):
             #     return 'pdf'
+            elif _is_csv(f):
+                return 'csv'
+
             else:
                 return 'txt'
 

@@ -1,5 +1,4 @@
 import csv
-import random
 
 # NOTE: content is in the form  [[word1, word2, 3], [nextline, abd, so], [forth, 1, 1]]
 def read_csv_input(text_input):

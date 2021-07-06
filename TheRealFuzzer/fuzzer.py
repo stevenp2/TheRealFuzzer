@@ -7,7 +7,9 @@ import argparse
 import json
 
 import runner as r
-from strategy.csv_fuzz import *
+import strategy.csv_fuzz as csv_strategy
+import strategy.json_fuzz as json_strategy
+
 from checker import check_type
 
 class Fuzzer():
@@ -20,37 +22,41 @@ class Fuzzer():
         self.runner.set_binary(binary)
         # self.runner.set_input_file(input_file)
 
-        bad_input = ''
-
+        bad_input = None
         # TODO: if bad_input is populated then immediately return the result
         # TODO: abstract out function calls
         if check_type(input_file) == 'json':
             with open(input_file, 'r') as f:
                 content = json.load(f)
+                
+                # expand file as plaintext
+                bad_input = json_strategy.expand_file(self.runner, content)
+                
+                if bad_input == None:
+                    # negate numbers
+                    bad_input = json_strategy.negate_input(self.runner, content)
 
-            print(content)
 
         elif check_type(input_file) == 'csv':
-            content, delimiter = read_csv_input(input_file)
+            content, delimiter = csv_strategy.read_csv_input(input_file)
 
             # remove delimiters
-            bad_input = vary_delimiters(self.runner, content, delimiter)
+            bad_input = csv_strategy.vary_delimiters(self.runner, content, delimiter)
+            
             # expand file strategy --> WORKS
-            bad_input = expand_file(self.runner, content, delimiter)
-
+            if bad_input == None:
+                bad_input = csv_strategy.expand_file(self.runner, content, delimiter)
 
         return bad_input
 
 
 
 def main(binary, input_file):
-    
     runner = r.Runner()
     fuzzer = Fuzzer(binary, input_file, runner)
 
 
     payload = fuzzer.run()
-
     if payload != None:
         with open('./bad.txt', 'w') as f:
             f.write(payload)
