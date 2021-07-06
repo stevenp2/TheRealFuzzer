@@ -1,5 +1,4 @@
 import csv
-import random
 
 # NOTE: content is in the form  [[word1, word2, 3], [nextline, abd, so], [forth, 1, 1]]
 def read_csv_input(text_input):
@@ -30,11 +29,15 @@ def vary_delimiters(Runner, content, delimiter):
 def expand_file(Runner, content, delimiter):
     payload = ''
 
-    if Runner.run_process(payload)[0]:
-        return payload
+    # Empty file
+    run = Runner.run_process(payload)
+    if run:
+        if run[0]:
+            return payload
 
     for i in range (0,50):
         payload += content
-        if Runner.run_process(payload)[0]:
-            return payload
-
+        run = Runner.run_process(payload)
+        if run: 
+            if run[0]:
+                return payload
