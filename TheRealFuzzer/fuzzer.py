@@ -5,10 +5,12 @@ import os
 import logging
 import argparse
 import json
+import xml.etree.ElementTree as ET
 
 import runner as r
 import strategy.csv_fuzz as csv_strategy
 import strategy.json_fuzz as json_strategy
+import strategy.xml_fuzz as xml_strategy
 
 from checker import check_type
 
@@ -35,6 +37,24 @@ class Fuzzer():
                 if bad_input == None:
                     # negate numbers
                     bad_input = json_strategy.negate_input(self.runner, content)
+
+
+        elif check_type(input_file) == 'xml':
+            with open(input_file, 'r') as f: 
+                tree = ET.parse(f)
+                root = tree.getroot()
+
+            # print(f'{root.tag} and {root.attrib}')
+            
+            for child in root:
+                print(child.tag, child.attrib)
+                if child.attrib != {}:
+                    
+                    for baby in child:
+                        print(baby.tag, baby.attrib)
+
+            # print(ET.tostring(root, encoding='utf8').decode('utf8'))    # <--- adds in an unwanted <?xml version='1.0' encoding='utf8'?>
+
 
 
         elif check_type(input_file) == 'csv':
