@@ -39,7 +39,7 @@ def add_tags(Runner, root, num_tags):
 
 
 
-def edit_elements(Runner, root):
+def edit_elements_format_str(Runner, root):
     for child in root.iter():
         if child.attrib:
             for attrib in child.attrib:
@@ -57,19 +57,37 @@ def edit_elements(Runner, root):
     if Runner.run_process(payload):
         return payload
 
+def edit_elements_overflow(Runner, root):
+    for child in root.iter():
+        if child.attrib:
+            for attrib in child.attrib:
+                attr_string = child.attrib[attrib]
+
+                overflow = int((2**10) / len(attr_string)) + 10
+                attr_string *= overflow
+                
+                child.attrib[attrib] = (attr_string)
+
+        if child.text:
+            empty_text = re.search('\\n +', child.text)
+
+            if not empty_text:
+                text_string = child.text
+                child.text = _format_string(text_string)
+
+    payload = ET.tostring(root)
+    if Runner.run_process(payload):
+        return payload
+
 
 def bombard_tag(Runner, root):
     cpy = str(ET.tostring(deepcopy(root)))
     wideXML = ''
-    for num in range(32000, 40000, 2000):
+    for num in range(31000, 40000, 1000):
         wideXML = "{}{}".format("<p>"*num, "</p>"*num)
 
         if Runner.run_process(wideXML):
             return wideXML
-
-    # return str(ET.tostring(root)) + wideXML
-
-
 
 
 def shuffle_elements(Runner, root):
