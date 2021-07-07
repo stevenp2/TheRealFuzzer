@@ -1,5 +1,7 @@
 import csv
 import json
+import xml.etree.ElementTree as ET
+
 
 def _is_csv(file):
     try:
@@ -18,10 +20,20 @@ def _is_json(file):
         return False
     return True
 
+def _is_xml(file):
+    try:
+        file.seek(0)
+        xml_file = ET.parse(file)
+    except:
+        return False
+    return True
+
 def check_type(text):
         with open(text, 'r') as f:
             if _is_json(f):
                 return 'json'
+            elif _is_xml(f):
+                return 'xml'
             # elif is_jpeg(text):
             #     return 'jpeg'
             # elif is_elf(text):
@@ -33,11 +45,3 @@ def check_type(text):
 
             else:
                 return 'txt'
-
-def check_seg_fault(p):
-    p.proc.stdin.close()
-    
-    if p.poll(block = True) == -11:
-        return True
-    
-    return False

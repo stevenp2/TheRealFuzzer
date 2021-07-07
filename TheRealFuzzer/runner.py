@@ -15,8 +15,20 @@ class Runner:
         # payload = self.craft_payload()
         with process(self.binary) as p:
             p.send(payload)
-            if check_seg_fault(p):
+            p.proc.stdin.close()
+
+            exit_status = None
+            while exit_status == None:
+                p.wait()
+                exit_status = p.returncode
+                
+            p.close()
+
+            if exit_status == -11:
                 # Accounts for empty payload being returned
+
+                # NOTE may be better to create bad.txt file here
+
                 return (True, payload)
 
 
