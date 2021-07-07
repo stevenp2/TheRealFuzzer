@@ -28,20 +28,28 @@ def _is_xml(file):
         return False
     return True
 
+def _is_txt(file):
+    try:
+        file.seek(0)
+        txt_file = file.read()
+    except:
+        return False
+    return True
+
 def check_type(text):
         with open(text, 'r') as f:
             if _is_json(f):
                 return 'json'
             elif _is_xml(f):
                 return 'xml'
+            elif _is_csv(f):
+                return 'csv'
+            elif _is_txt(f):
+                return 'txt'
+            # Need more interesting strategies for below
             # elif is_jpeg(text):
             #     return 'jpeg'
             # elif is_elf(text):
             #     return 'elf'
             # elif is_pdf(text):
             #     return 'pdf'
-            elif _is_csv(f):
-                return 'csv'
-
-            else:
-                return 'txt'
