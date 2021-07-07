@@ -12,6 +12,7 @@ import strategy.csv_fuzz as csv_strategy
 import strategy.json_fuzz as json_strategy
 import strategy.xml_fuzz as xml_strategy
 
+from copy import deepcopy
 from checker import check_type
 
 class Fuzzer():
@@ -27,7 +28,10 @@ class Fuzzer():
         bad_input = None
         # TODO: if bad_input is populated then immediately return the result
         # TODO: abstract out function calls
-        if check_type(input_file) == 'json':
+
+        file_type = check_type(input_file)
+
+        if file_type == 'json':
             with open(input_file, 'r') as f:
                 content = json.load(f)
                 
@@ -39,25 +43,24 @@ class Fuzzer():
                     bad_input = json_strategy.negate_input(self.runner, content)
 
 
-        elif check_type(input_file) == 'xml':
+        elif file_type == 'xml':
             with open(input_file, 'r') as f: 
                 tree = ET.parse(f)
-                root = tree.getroot()
 
-            # print(f'{root.tag} and {root.attrib}')
-            
-            for child in root:
-                print(child.tag, child.attrib)
-                if child.attrib != {}:
-                    
-                    for baby in child:
-                        print(baby.tag, baby.attrib)
+            # to not have the state of the original xml file adjusted
+            root = deepcopy(tree.getroot())
 
-            # print(ET.tostring(root, encoding='utf8').decode('utf8'))    # <--- adds in an unwanted <?xml version='1.0' encoding='utf8'?>
+            bad_input = xml_strategy.add_tags(self.runner, root, 20) # dumps at 35
+
+            if bad_input == None:
+                bad_input = xml_strategy.edit_elements(self.runner, root)
+            if bad_input == None:
+                bad_input = xml_strategy.bombard_tag(self.runner, root)
+            if bad_input == None:
+                bad_input = xml_strategy.shuffle_elements(self.runner, root)
 
 
-
-        elif check_type(input_file) == 'csv':
+        elif file_type == 'csv':
             content, delimiter = csv_strategy.read_csv_input(input_file)
 
             # remove delimiters
@@ -67,7 +70,12 @@ class Fuzzer():
             if bad_input == None:
                 bad_input = csv_strategy.expand_file(self.runner, content, delimiter)
 
-        return bad_input
+
+        if bad_input:
+            if isinstance(bad_input, bytes):
+                return bad_input
+            else:
+                return bad_input.encode('utf-8')
 
 
 
@@ -78,7 +86,7 @@ def main(binary, input_file):
 
     payload = fuzzer.run()
     if payload != None:
-        with open('./bad.txt', 'w') as f:
+        with open('./bad.txt', 'wb') as f:
             f.write(payload)
 
 
