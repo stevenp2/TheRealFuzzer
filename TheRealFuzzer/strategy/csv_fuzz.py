@@ -1,6 +1,7 @@
 import csv
 import random
 import re
+from .bad_stuff import bad_integers
 
 # NOTE: content is in the form  [[word1, word2, 3], [nextline, abd, so], [forth, 1, 1]]
 def _read_csv_input(content):
@@ -68,34 +69,34 @@ def negate_everything(Runner, content):
 
 def oob_ints(Runner, content):
     # regex
-    payload = ''
+    integers = re.findall(r'[0-9]+', content)
 
-    # Empty file
-    run = Runner.run_process(payload)
-    if run:
-        if run[0]:
+    def process_func(Runner, content, possible_int):
+
+        for integer in integers:
+            content = content.replace(integer, str(possible_int))
+
+        return content
+
+    for bad_int in bad_integers():
+        payload = process_func(Runner, content, bad_int)
+        if Runner.run_process(payload):
             return payload
-
-    for i in range (0,50):
-        payload += content
-        run = Runner.run_process(payload)
-        if run: 
-            if run[0]:
-                return payload
 
 # randomly flips some bits in string
 def bit_flip(Runner, content):
 
-    for i in range(0, 500):
+    for j in range(0, 300):
 
         byte_str = bytearray(content, 'utf-8')
 
         for i in range(0, len(byte_str)):
-            if random.randint(0, 20) == 1:
+            if random.randint(0, 2) == 1:
                 byte_str[i] ^= random.getrandbits(7)
 
 
-        payload = byte_str.decode('ascii').strip()
+        payload = byte_str.decode('ascii')
 
         if Runner.run_process(payload):
+            print(j)
             return payload

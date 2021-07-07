@@ -94,6 +94,10 @@ class Fuzzer():
             if bad_input == None:
                 bad_input = csv_strategy.expand_file(self.runner, content)
 
+            # replace ints with possible oob ints:
+            if bad_input == None:
+                bad_input = csv_strategy.oob_ints(self.runner, content)
+
             # flip some bits
             if bad_input == None:
                 bad_input = csv_strategy.bit_flip(self.runner, content)
@@ -104,11 +108,16 @@ class Fuzzer():
             with open(input_file, 'r') as f:
                 content = f.read()
 
-            # bad_input = csv_strategy.expand_file(self.runner, content)
-            bad_input = csv_strategy.negate_everything(self.runner, content)
+            bad_input = csv_strategy.expand_file(self.runner, content)
 
-            # if bad_input == None:
-            #     bad_input = csv_strategy.bit_flip(self.runner, content)
+            if bad_input == None:
+                bad_input = csv_strategy.oob_ints(self.runner, content)
+
+            if bad_input == None:
+                bad_input = csv_strategy.negate_everything(self.runner, content)
+
+            if bad_input == None:
+                bad_input = csv_strategy.bit_flip(self.runner, content)
 
         # NOTE for the case of pdf and jpg where f.read() cannot decode
         else:
