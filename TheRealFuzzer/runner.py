@@ -13,23 +13,22 @@ class Runner:
     # Returns True if there is an segmentation fault
     def run_process(self, payload):
         # payload = self.craft_payload()
-        with process(self.binary) as p:
-            p.send(payload)
-            p.proc.stdin.close()
+        
 
-            exit_status = None
-            while exit_status == None:
-                p.wait()
-                exit_status = p.returncode
-                
-            p.close()
+        if type(payload) is str:
+            payload = payload.encode()
 
-            if exit_status == -11:
-                # Accounts for empty payload being returned
+        with subprocess.Popen(self.binary,
+                              stdin=subprocess.PIPE,
+                              stdout=subprocess.DEVNULL,
+                              stderr=subprocess.DEVNULL) as p:
+            payload = p.communicate(payload)
 
-                # NOTE may be better to create bad.txt file here
+        if p.returncode == -11:
+            # Accounts for empty payload being returned
+            # NOTE may be better to create bad.txt file here
 
-                return (True, payload)
+            return (True, payload)
 
 
     def set_binary(self, binary_file):

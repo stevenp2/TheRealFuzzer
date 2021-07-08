@@ -59,7 +59,7 @@ class Fuzzer():
             root = deepcopy(tree.getroot())
 
              # increase size of xml file by increasing the number of sub tags
-            bad_input = xml_strategy.add_tags(self.runner, root, 20)
+            bad_input = xml_strategy.add_tags(self.runner, root, 40)
 
             if bad_input == None:
                 # add %p, %s, %x, etc. into elements

@@ -64,7 +64,6 @@ def do_bad_to_value(Runner, content):
         payload = process_func(Runner, content)
 
         payload = json.dumps(payload)
-        print(payload)
         if Runner.run_process(payload):
             return payload
 
@@ -83,6 +82,5 @@ def expand_file_bad(Runner, content):
         content[bad_str[loc_key]] = combine[loc_value]
 
     payload = json.dumps(content)
-    print(payload)
     if Runner.run_process(payload):
         return payload

@@ -83,7 +83,7 @@ def edit_elements_overflow(Runner, root):
 def bombard_tag(Runner, root):
     cpy = str(ET.tostring(deepcopy(root)))
     wideXML = ''
-    for num in range(31000, 40000, 1000):
+    for num in range(0, 40000, 5000):
         wideXML = "{}{}".format("<p>"*num, "</p>"*num)
 
         if Runner.run_process(wideXML):

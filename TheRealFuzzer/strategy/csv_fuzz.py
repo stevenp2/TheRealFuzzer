@@ -98,5 +98,4 @@ def bit_flip(Runner, content):
         payload = byte_str.decode('ascii')
 
         if Runner.run_process(payload):
-            print(j)
             return payload
