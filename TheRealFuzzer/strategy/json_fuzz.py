@@ -3,7 +3,7 @@ import base64
 import random
 from . import bad_stuff
 
-class Json_Fuzzer():
+class JSON_Fuzzer():
     def __init__(self, Runner, content):
         self.runner = Runner
         self.content = content
