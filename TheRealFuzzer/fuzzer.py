@@ -8,9 +8,9 @@ import json
 import xml.etree.ElementTree as ET
 
 import runner as r
-from strategy.csv_fuzz import Csv_Fuzzer
-from strategy.json_fuzz import Json_Fuzzer
-# from strategy.xml_fuzz import XML_Fuzzer
+from strategy.csv_fuzz import CSV_Fuzzer
+from strategy.json_fuzz import JSON_Fuzzer
+from strategy.xml_fuzz import XML_Fuzzer
 
 from copy import deepcopy
 from checker import check_type
@@ -25,65 +25,29 @@ class Fuzzer():
         self.runner.set_binary(binary)
         # self.runner.set_input_file(input_file)
 
-        bad_input = None
-
         file_type = check_type(input_file)
         outputs = []
 
         with open(input_file, 'r') as f:
 
             if file_type == 'json':
-                content = json.load(f)
-                    
-                json_fuzz = Json_Fuzzer(self.runner, content)
-                outputs += json_fuzz.strategies()
-
+                content = json.load(f)  
+                outputs += JSON_Fuzzer(self.runner, content).strategies()
 
             elif file_type == 'xml':
                 tree = ET.parse(f)
                 # to not have the state of the original xml file adjusted
                 root = deepcopy(tree.getroot())
+                outputs += XML_Fuzzer(self.runner, root).strategies()
 
-                # xml_fuzz = XML_Fuzzer(self.runner, root)
-
-                # outputs += filter(None, xml_fuzz.strategies())
-
-                # if outputs:
-                #     bad_input = outputs[0]
-
-                #  # increase size of xml file by increasing the number of sub tags
-                # bad_input = xml_strategy.add_tags(self.runner, root, 100)
-
-                # if bad_input == None:
-                #     # add %p, %s, %x, etc. into elements
-                #     bad_input = xml_strategy.edit_elements_format_str(self.runner, root)
-
-                # if bad_input == None:
-                #     # send large amount of empty tags
-                #     bad_input = xml_strategy.bombard_tag(self.runner, root)
-
-                # if bad_input == None:
-                #     # increase size of elements for possible overflow
-                #     bad_input = xml_strategy.edit_elements_overflow(self.runner, root)
-
-                # if bad_input == None:
-                #     # append a randomly selected elements inside headers
-                #     bad_input = xml_strategy.shuffle_elements(self.runner, root)
-
-
-            # NOTE sometimes csv failes to detect whether a plaintext is csv or not
             elif file_type == 'csv':
                 content = f.read()
-                
-                csv_fuzz = Csv_Fuzzer(self.runner, content)
-                outputs += csv_fuzz.strategies()
+                outputs += CSV_Fuzzer(self.runner, content).strategies()
 
             elif file_type == 'txt':
                 # apply some same strategies from csv
                 content = f.read()
-            
-                csv_fuzz = Csv_Fuzzer(self.runner, content)
-                outputs += csv_fuzz.strategies_txt()
+                outputs += CSV_Fuzzer(self.runner, content).strategies_txt()
 
             # NOTE for the case of pdf and jpg where f.read() cannot decode
             else:
@@ -91,6 +55,8 @@ class Fuzzer():
 
         outputs = list(filter(None, outputs))
         bad_input = outputs[0] if outputs else None
+
+        # Fall back if cannot fuzz using stage-1 fuzzing --> mutation based fuzzing
 
         if bad_input:
             if isinstance(bad_input, bytes):

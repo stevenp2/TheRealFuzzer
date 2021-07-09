@@ -3,7 +3,7 @@ import random
 import re
 from .bad_stuff import bad_integers
 
-class Csv_Fuzzer():
+class CSV_Fuzzer():
     def __init__(self, Runner, content):
         self.runner = Runner
         self.content = content
