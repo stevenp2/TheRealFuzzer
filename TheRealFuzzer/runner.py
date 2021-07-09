@@ -1,8 +1,4 @@
 import subprocess
-
-from checker import * 
-from pwn import *
-from strategy.csv_fuzz import *
 import multiprocessing as MP
 
 
