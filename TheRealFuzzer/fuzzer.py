@@ -11,9 +11,11 @@ import runner as r
 from strategy.csv_fuzz import CSV_Fuzzer
 from strategy.json_fuzz import JSON_Fuzzer
 from strategy.xml_fuzz import XML_Fuzzer
+from strategy.txt_fuzz import TXT_Fuzzzer
 
 from copy import deepcopy
-from checker import check_type
+from checker import check_type, check_arch
+
 
 class Fuzzer():
     def __init__(self, binary, input_file, Runner):
@@ -23,7 +25,8 @@ class Fuzzer():
 
     def run(self):
         self.runner.set_binary(binary)
-        # self.runner.set_input_file(input_file)
+        self.runner.set_input_file(input_file)
+        self.runner.set_arch(check_arch(binary))
 
         file_type = check_type(input_file)
         outputs = []
@@ -37,17 +40,16 @@ class Fuzzer():
             elif file_type == 'xml':
                 tree = ET.parse(f)
                 # to not have the state of the original xml file adjusted
-                root = deepcopy(tree.getroot())
-                outputs += XML_Fuzzer(self.runner, root).strategies()
+                content = deepcopy(tree.getroot())
+                outputs += XML_Fuzzer(self.runner, content).strategies()
 
             elif file_type == 'csv':
                 content = f.read()
                 outputs += CSV_Fuzzer(self.runner, content).strategies()
 
             elif file_type == 'txt':
-                # apply some same strategies from csv
                 content = f.read()
-                outputs += CSV_Fuzzer(self.runner, content).strategies_txt()
+                outputs += TXT_Fuzzzer(self.runner, content).strategies()
 
             # NOTE for the case of pdf and jpg where f.read() cannot decode
             else:
