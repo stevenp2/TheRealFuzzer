@@ -61,10 +61,12 @@ class Fuzzer():
         # Fall back if cannot fuzz using stage-1 fuzzing --> mutation based fuzzing
 
         if bad_input:
+            print('bad found')
             if isinstance(bad_input, bytes):
                 return bad_input
             else:
                 return bad_input.encode('utf-8')
+        print('rip nothing found')
 
 
 
