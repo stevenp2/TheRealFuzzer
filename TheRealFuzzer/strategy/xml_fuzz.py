@@ -51,7 +51,6 @@ class XML_Fuzzer():
                     child.text = self._format_string(text_string)
 
         payload = ET.tostring(self.root)
-        print(payload)
         if self.runner.run_process(payload):
             
             return payload
