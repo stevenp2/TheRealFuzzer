@@ -15,13 +15,6 @@ class Runner:
         if type(payload) is str:
             payload = payload.encode()
 
-        # with subprocess.Popen(self.binary,
-        #                       stdin=subprocess.PIPE,
-        #                       stdout=subprocess.DEVNULL,
-        #                       stderr=subprocess.DEVNULL) as p:
-
-        #     payload = p.communicate(payload)
-
         p = subprocess.Popen([f'qemu-{self.arch}', '-d', 'strace', '-D', '../log_report/log', f'{self.binary}'], 
                                 stdin = subprocess.PIPE, 
                                 stdout = subprocess.DEVNULL,

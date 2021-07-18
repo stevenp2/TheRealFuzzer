@@ -81,7 +81,7 @@ def main(binary, input_file):
 
 if __name__ == "__main__":
 
-    test_path = "../testfiles/"
+    test_path = '' # "../testfiles/"
 
     if len(sys.argv) != 3:
         print(f"Usage: {sys.argv[0]} [binary] [input_file]")
