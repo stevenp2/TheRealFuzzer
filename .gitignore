@@ -3,3 +3,4 @@ core
 bad.txt
 *.pyc
 log_report/
+testfiles/
