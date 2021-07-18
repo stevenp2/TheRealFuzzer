@@ -42,12 +42,13 @@ class XML_Fuzzer():
             if child.text:
                 empty_text = re.search('\\n +', child.text)
 
-                if empty_text:
+                if not empty_text:
                     text_string = child.text
                     child.text = self._format_string(text_string)
 
         payload = ET.tostring(self.root)
         
+
         if self.runner.run_process(payload):
             
             return payload
