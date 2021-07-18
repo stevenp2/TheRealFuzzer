@@ -1,6 +1,7 @@
 import csv
 import json
 import xml.etree.ElementTree as ET
+import subprocess
 
 
 def _is_csv(file):
@@ -35,6 +36,14 @@ def _is_txt(file):
     except:
         return False
     return True
+
+def check_arch(input_file):
+    p = subprocess.check_output(['file', f'{input_file}'])
+    result = str(p)
+    if 'Intel 80386' in result:
+        return 'i386'
+    elif 'x86-64' in result:
+        return 'x86_64'
 
 def check_type(text):
         with open(text, 'r') as f:

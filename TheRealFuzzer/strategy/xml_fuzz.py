@@ -15,6 +15,7 @@ class XML_Fuzzer():
             self.edit_elements_format_str(),
             self.edit_elements_overflow(),
             self.bombard_tag(),
+            self.shuffle_elements(100)
         ]
 
     # read_xml will go through each of the attributes and 'edit' the attribute, and text
@@ -33,6 +34,9 @@ class XML_Fuzzer():
                 return payload
 
     def edit_elements_format_str(self):
+
+        # root_cpy = deepcopy(self.root)    
+
         for child in self.root.iter():
             if child.attrib:
                 for attrib in child.attrib:
@@ -47,8 +51,6 @@ class XML_Fuzzer():
                     child.text = self._format_string(text_string)
 
         payload = ET.tostring(self.root)
-        
-
         if self.runner.run_process(payload):
             
             return payload
@@ -80,20 +82,18 @@ class XML_Fuzzer():
 
 
     def bombard_tag(self):
-        cpy = str(ET.tostring(deepcopy(self.root)))
-        wideXML = ''
+
+        wide_ML = ''
+
         for num in range(20000, 40000, 5000):
-            wideXML = "{}{}".format("<p>"*num, "</p>"*num)
-
-            
-            if self.runner.run_process(wideXML):
+            wide_XML = "{}{}".format("<p>"*num, "</p>"*num)
+            if self.runner.run_process(wide_XML):
                 
-                return wideXML
+                return wide_XML
 
 
-    def shuffle_elements(self):
+    def shuffle_elements(self, num):
         
-        test_range = 30000
         root_cpy = deepcopy(self.root)
 
         def iterate_process(root, num_test):
@@ -115,7 +115,7 @@ class XML_Fuzzer():
 
             return ET.tostring(root)
         
-        for i in range(0, 1000):
+        for i in range(0, num):
             if i % 100 == 0:
                 payload = iterate_process(root_cpy, i)
 
