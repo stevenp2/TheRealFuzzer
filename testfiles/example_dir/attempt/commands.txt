@@ -1,0 +1,7 @@
+b main
+run < blind.txt
+
+while 1
+stepi
+x/i $pc
+end
