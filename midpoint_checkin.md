@@ -149,4 +149,4 @@ One includes actually managing and figuring out what to do something with the `.
 The fuzzer also has not implemented any displays not detection of infinite loops.
 
 ##  Something Awesome 
-If the coverage is successful then technically a grey box fuzzer is implemented. Perhaps this could be seen as a some extra added feature 👀.
+If the coverage is successful then technically a grey box fuzzer is implemented. Perhaps this could be seen as a some extra added feature 👀
