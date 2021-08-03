@@ -11,16 +11,18 @@ class Runner:
     def run_process(self, payload):
         # payload = self.craft_payload()
         
-
         if type(payload) is str:
             payload = payload.encode()
 
-        p = subprocess.Popen([f'qemu-{self.arch}', '-d', 'strace', '-D', '../log_report/log', f'{self.binary}'], 
+                                                #in_asm,nochain
+        process_as = [f'qemu-{self.arch}', '-d', 'in_asm' ,'-D', '../log_report/log', f'{self.binary}'] if self.arch else self.binary
+        p = subprocess.Popen(process_as, 
                                 stdin = subprocess.PIPE, 
                                 stdout = subprocess.DEVNULL,
                                 stderr = subprocess.DEVNULL)
-                                
+                                    
         p.communicate(payload)
+
 
         if p.returncode == -11:
             # Accounts for empty payload being returned
