@@ -6,12 +6,15 @@ import logging
 import argparse
 import json
 import xml.etree.ElementTree as ET
+import exifread
+
 
 import runner as r
 from strategy.csv_fuzz import CSV_Fuzzer
 from strategy.json_fuzz import JSON_Fuzzer
 from strategy.xml_fuzz import XML_Fuzzer
 from strategy.txt_fuzz import TXT_Fuzzzer
+from strategy.jpg_fuzz import JPG_Fuzzer
 
 from copy import deepcopy
 from checker import check_type, check_arch
@@ -31,29 +34,47 @@ class Fuzzer():
         file_type = check_type(input_file)
         outputs = []
 
-        with open(input_file, 'r') as f:
-
-            if file_type == 'json':
+        if file_type == 'json':
+            with open(input_file, 'r') as f:
                 content = json.load(f)  
                 outputs += JSON_Fuzzer(self.runner, content).strategies()
 
-            elif file_type == 'xml':
+        elif file_type == 'xml':
+            with open(input_file, 'r') as f:
                 tree = ET.parse(f)
                 # to not have the state of the original xml file adjusted
                 content = deepcopy(tree.getroot())
                 outputs += XML_Fuzzer(self.runner, content).strategies()
 
-            elif file_type == 'csv':
+        elif file_type == 'csv':
+            with open(input_file, 'r') as f:
                 content = f.read()
                 outputs += CSV_Fuzzer(self.runner, content).strategies()
 
-            elif file_type == 'txt':
+        elif file_type == 'txt':
+            with open(input_file, 'r') as f:
                 content = f.read()
                 outputs += TXT_Fuzzzer(self.runner, content).strategies()
 
-            # NOTE for the case of pdf and jpg where f.read() cannot decode
-            else:
-                pass
+        # NOTE for the case of pdf and jpg where f.read() cannot decode
+
+        elif file_type == 'jpeg':
+            with open(input_file, 'rb') as f:
+                content = bytearray(f.read())
+
+                # print(content)
+
+                jpg = JPG_Fuzzer(self.runner, content)
+                jpg.overwrite_byte_sequences()
+                # jpg.bit_flip()
+                # print('here')
+
+
+
+
+        # else:
+        #     with open(input_file, 'rb') as f:
+        #         self.runner.initial_coverage(f.read())
 
         outputs = list(filter(None, outputs))
         bad_input = outputs[0] if outputs else None
