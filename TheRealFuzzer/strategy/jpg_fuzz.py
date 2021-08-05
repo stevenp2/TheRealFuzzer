@@ -3,17 +3,64 @@ from .bad_stuff import magic_numbers
 
 # https://h0mbre.github.io/Fuzzing-Like-A-Caveman/
 class JPG_Fuzzer():
-    def __init__(self, Runner, input):
+    def __init__(self, Runner, input, reporter):
         self.runner = Runner
         self.input = input
+        self.reporter = reporter
 
-    def edit_test(self):
-        self.runner.run_process(self.input)
+        self.reporter.set_fuzzer('JPG Fuzzer')
+
+    def strategies(self):
+        return [
+            self.increment(),
+            self.decrement(),
+            self.bit_flip(),
+            self.byte_flip(),
+            self.overwrite_byte_sequences(),
+            self.expand_file(),
+        ]
             
 
-    def bit_flip(self):
+    def increment(self):
+        self.reporter.set_strategy('increment')
         
-        for j in range(0, 1000):
+        for j in range(0, 200):
+            payload = self.input
+
+            num_to_increment = int((len(payload) - 4) * 0.01)
+            indices_to_increment = range(4, (len(payload) - 4)) # accounts for SOI and EOI
+
+            chosen_indexes = []
+
+            for i in range(0, num_to_increment):
+                loc = random.choice(indices_to_increment)
+                payload[loc] = (payload[loc] % 255) + 1
+                
+            if self.runner.run_process(payload):
+                return payload
+
+    def decrement(self):
+        self.reporter.set_strategy('decrement')
+        
+        for j in range(0, 200):
+            payload = self.input
+
+            num_to_decrement = int((len(payload) - 4) * 0.01)
+            indices_to_decrement = range(4, (len(payload) - 4)) # accounts for SOI and EOI
+
+            chosen_indexes = []
+
+            for i in range(0, num_to_decrement):
+                loc = random.choice(indices_to_decrement)
+                payload[loc] = (payload[loc] - 1) % 255
+                
+            if self.runner.run_process(payload):
+                return payload
+
+    def bit_flip(self):
+        self.reporter.set_strategy('bit_flip')
+        
+        for j in range(0, 200):
             payload = self.input
 
 
@@ -43,19 +90,39 @@ class JPG_Fuzzer():
                 payload[loc] = payload[loc]
 
             
-            payload = bytes(payload)
-            self.runner.run_process(payload)
+            if self.runner.run_process(payload):
+                return payload
 
+
+    def byte_flip(self):
+        self.reporter.set_strategy('byte_flip')
+        
+        for j in range(0, 200):
+            payload = self.input
+
+
+            num_of_flips = int((len(payload) - 4) * 0.01)
+            indices_to_flip = range(4, (len(payload) - 4)) # accounts for SOI and EOI
+
+            chosen_indexes = []
+
+            for i in range(0, num_of_flips):
+                loc =random.choice(indices_to_flip)
+                payload[loc] = payload[loc] ^ 0xff
+                
+            if self.runner.run_process(payload):
+                return payload
 
     def overwrite_byte_sequences(self):
+        self.reporter.set_strategy('overwrite_byte_sequences')
 
-        for i in range(0, 1000):
+        for i in range(0, 200):
 
             payload = self.input
 
             picked_magic = magic_numbers()[random.choice([0,1,2])] #random.choice(magic_numbers())
             
-            index = range(8, len(payload) - 8)
+            index = range(4, len(payload) - 4)
             picked_index = random.choice(index)
 
             if picked_magic[0] == 1:
@@ -105,8 +172,21 @@ class JPG_Fuzzer():
                     payload[picked_index + 2] = 255
                     payload[picked_index + 3] = 255
 
-            # self.runner.run_process(payload)
-            f = open("../testfiles/mutated.txt", "wb+")
-            f.write(payload)
-            f.close()
-            exit()
+            if self.runner.run_process(payload):
+                return payload
+
+    def expand_file(self):
+        self.reporter.set_strategy('expand_file')
+
+        content = self.input
+        get_SOI = content[:4]
+        get_EOI = content[-4:]
+        get_body = content[4:-4]
+
+        for i in range(1, 3000, 300):
+            payload = get_SOI
+            payload += get_body*i
+            payload += get_EOI
+
+            if self.runner.run_process(payload):
+                return payload

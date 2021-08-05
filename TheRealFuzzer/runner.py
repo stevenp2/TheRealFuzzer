@@ -20,6 +20,8 @@ class Runner:
 
         p.communicate(payload)
 
+        self.reporter.counter += 1
+
         return self.process_return_code(p, payload)
 
     def run_process_coverage(self, payload):
@@ -28,7 +30,7 @@ class Runner:
                                                 #in_asm,nochain
         # NOTE -d in_asm doesn not trace for each executed instruction --> traces which instructions are translated
         #      -d cpu, or -d exec with nochain is what we want to use
-        process_as = [f'qemu-{self.arch}', '-d', 'exec' ,'-D', '../log_report/log', f'{self.binary}'] if self.arch else self.binary
+        process_as = [f'qemu-{self.arch}', '-d', 'exec' ,'-D', '../tmp/log', f'{self.binary}'] if self.arch else self.binary
         p = subprocess.Popen(process_as, 
                                 stdin  = subprocess.PIPE, 
                                 stdout = subprocess.DEVNULL,
@@ -40,28 +42,18 @@ class Runner:
 
 
     def process_return_code(self, p, payload):
-        # if p.returncode == 1:
-        #     print(f'likely error with arguments - will exit program now')
-        #     exit(0)
-        print(p.returncode)
         if p.returncode == -11:
             # Accounts for empty payload being returned
             # NOTE may be better to create bad.txt file here
 
+            self.reporter.bad_found()
+
             return (True, payload)
+        
+        # if p.returncode == 1:
+        #     print(f'likely error with arguments - will exit program now')
+        #     exit(0)
 
-    def initial_coverage(self, f):
-        if type(f) is str:
-            f = f.encode()
-
-        process_as = [f'qemu-{self.arch}', '-d', 'exec' ,'-D', '../log_report/log', f'{self.binary}'] if self.arch else self.binary
-
-        p = subprocess.Popen(process_as, 
-                                stdin  = subprocess.PIPE, 
-                                stdout = subprocess.DEVNULL,
-                                stderr = subprocess.DEVNULL)
-
-        p.communicate(f)
 
 
     def set_binary(self, binary_file):
@@ -72,3 +64,6 @@ class Runner:
 
     def set_arch(self, arch):
         self.arch = arch
+
+    def set_reporter(self, reporter):
+        self.reporter = reporter

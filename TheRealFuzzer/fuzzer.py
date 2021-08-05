@@ -10,6 +10,7 @@ import exifread
 
 
 import runner as r
+from reporter import Reporter
 from strategy.csv_fuzz import CSV_Fuzzer
 from strategy.json_fuzz import JSON_Fuzzer
 from strategy.xml_fuzz import XML_Fuzzer
@@ -27,50 +28,51 @@ class Fuzzer():
         self.runner = Runner
 
     def run(self):
+        file_type = check_type(input_file)
+        outputs = []
+
+        reporter = Reporter()
+        directory = os.path.dirname("log_report/")
+
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
+        reporter.set_file(open(directory + '/log', 'w'))
+
         self.runner.set_binary(binary)
         self.runner.set_input_file(input_file)
         self.runner.set_arch(check_arch(binary))
+        self.runner.set_reporter(reporter)
 
-        file_type = check_type(input_file)
-        outputs = []
 
         if file_type == 'json':
             with open(input_file, 'r') as f:
                 content = json.load(f)  
-                outputs += JSON_Fuzzer(self.runner, content).strategies()
+                outputs += JSON_Fuzzer(self.runner, content, reporter).strategies()
 
         elif file_type == 'xml':
             with open(input_file, 'r') as f:
                 tree = ET.parse(f)
                 # to not have the state of the original xml file adjusted
                 content = deepcopy(tree.getroot())
-                outputs += XML_Fuzzer(self.runner, content).strategies()
+                outputs += XML_Fuzzer(self.runner, content, reporter).strategies()
 
         elif file_type == 'csv':
             with open(input_file, 'r') as f:
                 content = f.read()
-                outputs += CSV_Fuzzer(self.runner, content).strategies()
+                outputs += CSV_Fuzzer(self.runner, content, reporter).strategies()
 
         elif file_type == 'txt':
             with open(input_file, 'r') as f:
                 content = f.read()
-                outputs += TXT_Fuzzzer(self.runner, content).strategies()
+                outputs += TXT_Fuzzzer(self.runner, content, reporter).strategies()
 
         # NOTE for the case of pdf and jpg where f.read() cannot decode
 
         elif file_type == 'jpeg':
             with open(input_file, 'rb') as f:
                 content = bytearray(f.read())
-
-                # print(content)
-
-                jpg = JPG_Fuzzer(self.runner, content)
-                jpg.overwrite_byte_sequences()
-                # jpg.bit_flip()
-                # print('here')
-
-
-
+                outputs += JPG_Fuzzer(self.runner, content, reporter).strategies()
 
         # else:
         #     with open(input_file, 'rb') as f:
@@ -82,12 +84,12 @@ class Fuzzer():
         # Fall back if cannot fuzz using stage-1 fuzzing --> mutation based fuzzing
 
         if bad_input:
-            print('bad found')
             if isinstance(bad_input, bytes):
                 return bad_input
             else:
                 return bad_input.encode('utf-8')
-        print('rip nothing found')
+
+        reporter.write('rip nothing found')
 
 
 

@@ -4,9 +4,13 @@ import re
 from .bad_stuff import bad_integers
 
 class CSV_Fuzzer():
-    def __init__(self, Runner, content):
+    def __init__(self, Runner, content, reporter):
         self.runner = Runner
         self.content = content
+        self.reporter = reporter
+
+        self.reporter.set_fuzzer('CSV Fuzzer')
+
 
     def strategies(self):
         return [
@@ -17,16 +21,10 @@ class CSV_Fuzzer():
             self.bit_flip(),
         ]
 
-    def strategies_txt(self):
-        return [
-            self.expand_file(),
-            self.oob_ints(),
-            self.negate_everything(),
-            self.bit_flip(),
-        ]
-
     # Simple strategy - have fun with delimiters
     def vary_delimiters(self):
+        self.reporter.set_strategy('vary_delimiters')
+
         self.content, delimiter = self._read_csv_input()
 
         if delimiter == None:
@@ -41,6 +39,8 @@ class CSV_Fuzzer():
             
     # Simple strategy - expand file size from empty
     def expand_file(self):
+        self.reporter.set_strategy('expand_file')
+
         payload = ''
 
         # Empty file
@@ -58,6 +58,8 @@ class CSV_Fuzzer():
 
     # Simple strategy - expand file size from empty
     def negate_everything(self):
+        self.reporter.set_strategy('negate_everything')
+
         c = csv.reader(self.content)
         payload = []
         for row in c:
@@ -79,6 +81,8 @@ class CSV_Fuzzer():
             return payload_csv
 
     def oob_ints(self):
+        self.reporter.set_strategy('oob_ints')
+        
         # regex
         integers = re.findall(r'[0-9]+', self.content)
 
@@ -96,6 +100,7 @@ class CSV_Fuzzer():
 
     # randomly flips some bits in string
     def bit_flip(self):
+        self.reporter.set_strategy('bit_flip')
 
         for j in range(0, 300):
 
