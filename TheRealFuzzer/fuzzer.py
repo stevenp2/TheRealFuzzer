@@ -7,7 +7,7 @@ import argparse
 import json
 import xml.etree.ElementTree as ET
 import exifread
-
+import matplotlib.pyplot as plt
 
 import runner as r
 from reporter import Reporter
@@ -73,8 +73,6 @@ class Fuzzer():
                 f.close()
                 outputs += TXT_Fuzzzer(self.runner, content, reporter).strategies()
 
-        # NOTE for the case of pdf and jpg where f.read() cannot decode
-
         elif file_type == 'jpeg':
             with open(input_file, 'rb') as f:
                 content = bytearray(f.read())
@@ -85,17 +83,28 @@ class Fuzzer():
         bad_input = outputs[0] if outputs else None
 
         if bad_input:
+            return_codes = self.runner.return_codes
+            plt.bar(range(len(return_codes)), list(return_codes.values()), align='center')
+            plt.xticks(range(len(return_codes)), list(return_codes.keys()))
+            plt.xlabel('return codes')
+            plt.ylabel('amount')
+            plt.savefig('log_report/return_code.png', bbox_inches="tight")
+
             if isinstance(bad_input, bytes):
                 return bad_input
             else:
                 return bad_input.encode('utf-8')
 
-        # Fall back if cannot fuzz using stage-1 fuzzing --> mutation based fuzzing
+        # Fall back if cannot fuzz using basic techniques --> mutation based fuzzing
         else:
             bad_input = None
+            directory = os.path.dirname("../tmp/")
+
+            if not os.path.exists(directory):
+                os.makedirs(directory)
 
             if file_type == 'jpeg':
-                with open(input_file, 'r') as f:
+                with open(input_file, 'rb') as f:
                     mutation = Mutation_Fuzzer(self.runner, f, reporter, file_type)
                     bad_input = mutation.initiate()
 

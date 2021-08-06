@@ -1,12 +1,14 @@
 import subprocess
 import os, signal
 import re
+import xml
+import xml.etree.ElementTree as ET
 # import multiprocessing as MP
 
 
 class Runner:
     def __init__(self):
-        pass
+        self.set_return_codes()
             
     # Returns True if there is an segmentation fault
     def run_process(self, payload):        
@@ -28,9 +30,10 @@ class Runner:
     def run_process_coverage(self, payload):
         if type(payload) is str:
             payload = payload.encode()
-                                                #in_asm,nochain
-        # NOTE -d in_asm doesn not trace for each executed instruction --> traces which instructions are translated
-        #      -d cpu, or -d exec with nochain is what we want to use
+
+        if type(payload) is xml.etree.ElementTree.Element:
+            payload = ET.tostring(payload)
+
         process_as = [f'qemu-{self.arch}', '-d', 'exec,nochain' ,'-D', '../tmp/program_exec', f'{self.binary}'] if self.arch else self.binary
         p = subprocess.Popen(process_as, 
                                 stdin  = subprocess.PIPE, 
@@ -39,6 +42,34 @@ class Runner:
 
         p.communicate(payload)
 
+        self.reporter.counter += 1
+
+        self.process_trace_file()
+
+
+        return self.process_return_code(p, payload)
+
+    # detects the type of crash
+    def process_return_code(self, p, payload):
+        if p.returncode == 0:
+            self.return_codes['0'] += 1
+        elif p.returncode == 1:
+            self.return_codes['1'] += 1
+        elif p.returncode == -6:
+            self.return_codes['-6'] += 1
+        elif p.returncode == -11:
+            self.return_codes['-11'] += 1
+            self.reporter.bad_found()
+
+            return (True, payload)
+
+
+    def initial_process_coverage(self):
+        os.system(f"qemu-{self.arch} -d exec,nochain -D ../tmp/program_exec {self.binary} < {self.input_file} >/dev/null 2>&1")
+        # subprocess.run([f'qemu-{self.arch}', '-d', 'exec,nochain', '-D', '../tmp/program_exec', f'{self.binary}', '<', f'{self.input_file}'])
+        self.process_trace_file()
+
+    def process_trace_file(self):
         with open('../tmp/program_exec') as f:
             for line in f.readlines():
                 function = re.search(r"\s*([\S]+)$", line)
@@ -57,24 +88,6 @@ class Runner:
                     else:
                         if address not in address_list:
                             address_list.append(address)
-                
-
-        return self.process_return_code(p, payload)
-
-
-    def process_return_code(self, p, payload):
-        if p.returncode == -11:
-            # Accounts for empty payload being returned
-            # NOTE may be better to create bad.txt file here
-
-            self.reporter.bad_found()
-
-            return (True, payload)
-        
-        # if p.returncode == 1:
-        #     print(f'likely error with arguments - will exit program now')
-        #     exit(0)
-
 
 
     def set_binary(self, binary_file):
@@ -92,3 +105,6 @@ class Runner:
     def set_coverage(self):
         self.coverage_func_addr = {}
         self.coverage_func = []
+
+    def set_return_codes(self):
+        self.return_codes = {'0':0, '1':0, '-6':0, '-11':0}

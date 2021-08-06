@@ -1,6 +1,11 @@
 import random
 import csv
 import json
+import xml.etree.ElementTree as ET
+from copy import deepcopy
+import re
+import os
+
 import matplotlib.pyplot as plt
 from . import bad_stuff
 
@@ -20,26 +25,38 @@ class Mutation_Fuzzer():
         self.loop_counter = [0, 0] # [exec, number of repetitions]
 
     def initiate(self):
+        self.reporter.send_to_stdout('Initiating coverage fuzzing')
+
         self.payload = self.determine_content(self.f)
         self.payloads.append(self.payload)
 
         self.runner.set_coverage()
         
         # generate coverage from initial input file
-        self.runner.run_process_coverage(self.payload)
-        # total = self.total_addr()
+        self.runner.initial_process_coverage()
 
-        # print(self.runner.coverage_func_addr)
-        # print(self.runner.coverage_func)
+        # plotting initial coverage
+        plt.figure(1)
+        plt.bar(self.runner.coverage_func, self.calculate_coverage(), color='r', label='input file')
+        plt.xticks(rotation = 90)
+        plt.ylabel('diff addresses')
+        plt.legend(loc='best')
 
         self.perform_coverage_fuzz(self.file_type)
 
+        # plotting coverage after payload has been found
+        plt.bar(self.runner.coverage_func, self.calculate_coverage(), color='greenyellow', alpha=0.3, label='coverage')
+        plt.legend(loc='best')
+        plt.savefig('log_report/function_coverage.png', bbox_inches="tight")
 
-        # func_addr = self.calculate_coverage()
-        # plt.plot(self.runner.coverage_func, func_addr)
-        # plt.xticks(rotation = 90)
-        # plt.ylabel('diff addresses')
-        # plt.show()
+        # plotting the return codes
+        return_codes = self.runner.return_codes
+        plt.figure(2)
+        plt.bar(range(len(return_codes)), list(return_codes.values()), align='center')
+        plt.xticks(range(len(return_codes)), list(return_codes.keys()))
+        plt.xlabel('return codes')
+        plt.ylabel('amount')
+        plt.savefig('log_report/return_code.png', bbox_inches="tight")
 
         return self.payload
 
@@ -52,51 +69,44 @@ class Mutation_Fuzzer():
             total = self.total_addr() # total of previous
             
             if self.determine_loop(total):
+                self.reporter.send_to_stdout('Dead end detected, resetting')
                 total = self.reset(total)
 
-                print(f'popped and blacklist is {self.exec_blacklist} and payloads len is {len(self.payloads)}')
-
             if self.file_type == 'json':
-                payload = self.json_mutation(bad_str, self.payloads[len(self.payloads) - 1])
+                payload = self.json_mutation(bad_ints, bad_str, self.payloads[len(self.payloads) - 1])
             elif self.file_type == 'xml':
-                payload = self.csv_mutatation(bad_ints, bad_str, self.payloads[len(self.payloads) - 1])
+                payload = self.xml_mutation(bad_ints, bad_str, self.payloads[len(self.payloads) - 1])
             elif self.file_type == 'csv':
-                # payload = self.csv_mutatation(bad_str, self.payloads[len(self.payloads) - 1])
-                pass
+                payload = self.csv_mutatation(bad_str, self.payloads[len(self.payloads) - 1])
             elif self.file_type == 'txt':
-                # payload = self.csv_mutatation(bad_str, self.payloads[len(self.payloads) - 1])
-                pass
+                payload = self.txt_mutation(bad_str, self.payloads[len(self.payloads) - 1])
             elif self.file_type == 'jpeg':
                 # payload = self.csv_mutatation(bad_str, self.payloads[len(self.payloads) - 1])
                 pass
 
-
             result = self.runner.run_process_coverage(payload)
+
+            if result != None:
+                self.payload = payload
+                self.reporter.send_to_stdout('Found Payload')
+                break
 
             new_total = self.total_addr()
 
             if (new_total > total):
-
                 if new_total not in self.exec_blacklist:
 
                     # set new payload
                     self.payload = payload
-                    print('new payload')
+                    self.reporter.send_to_stdout(f'\rNew path discovered with {new_total} different addresses - adjusting payload')
 
                     self.loop_counter[0] = new_total
                     self.loop_counter[1] = 0
-
-                    print(f"loop counter: {self.loop_counter}")
 
                     self.payloads.append(self.payload)
 
             else:
                 self.loop_counter[1] += 1
-
-            print(new_total)
-
-            if result != None:
-                break
         
     def reset(self, total):
         self.loop_counter[0] = 0
@@ -112,9 +122,8 @@ class Mutation_Fuzzer():
         return 0
 
     def determine_loop(self, total):
-        # num_func = len(self.runner.coverage_func)
 
-        if self.loop_counter[1] == 20: # TODO change
+        if self.loop_counter[1] == int(16.498): # average derived from repeating mutations for all fuzzers
             return True
         
         return False
@@ -125,7 +134,7 @@ class Mutation_Fuzzer():
         for function in self.runner.coverage_func:
             addresss_list = self.runner.coverage_func_addr[function]
             func_cover.append(len(addresss_list))
-            print(f'{function}: {len(addresss_list)}')
+            # print(f'{function}: {len(addresss_list)}')
 
         return func_cover
 
@@ -148,8 +157,8 @@ class Mutation_Fuzzer():
 
         
 
-    def json_mutation(bad_ints, bad_str, content):
-
+    def json_mutation(self, bad_ints, bad_str, content):
+        
         for key in content:
             if isinstance(content[key], int):
                 loc = random.randint(0, len(bad_ints) - 1)
@@ -160,28 +169,87 @@ class Mutation_Fuzzer():
                 content[key] = bad_str[loc]
 
         content = json.dumps(content)
-        print(content)
 
-        # self.runner.run_process(payload)
-        exit()
+        return content
+
+    def xml_mutation(self, bad_ints, bad_str, root):
+
+        for child in root.iter():
+            if child.attrib:
+                for attrib in child.attrib:
+                    attr_string = child.attrib[attrib]
+                    child.attrib[attrib] = self._xml_do_bad(attr_string, bad_ints, bad_str)
+
+            if child.text:
+                empty_text = re.search('\\n +', child.text)
+
+                if not empty_text:
+                    text_string = child.text
+                    child.text = self._xml_do_bad(text_string, bad_ints, bad_str)
+
+        # payload = ET.tostring(root)
+        
+        return root
+
+    def _xml_do_bad(self, string, bad_ints, bad_str):
+        str_len = len(string)
+
+        int_or_str = random.choice([0, 1])
+        random_loc = random.choice(range(0, len(string)))
+
+        if type(int_or_str) is int:
+            string = string.replace(string[random_loc], str(bad_ints[random.choice(range(0, len(bad_ints)))]))
+        else:
+            string = string.replace(string[random_loc], bad_ints[random.choice(range(0, len(bad_str)))])   
+
+        return string
+
+    def txt_mutation(self, bad_str, content):
+
+        random_index = random.choice(range(0, len(content)))
+        random_replacement = random.choice(range(0, len(bad_str)))
+
+        payload = content.replace(content[random_index], bad_str[random_replacement])
+        
         return payload
 
-    def xml_mutation():
-        pass
+    def jpg_mutation(self, input):
+        
+        payload = input
 
-    def txt_mutation():
-        pass
+        num_of_flips = int((len(payload) - 4) * 0.005)
+        indices_to_flip = range(4, (len(payload) - 4)) # accounts for SOI and EOI
 
-    def jpg_mutation():
-        pass
+        for i in range(0, num_of_flips):
+            loc = random.choice(indices_to_flip)
+
+            binary = list(bin(payload[loc])[2:])
+            index = random.choice(range(0,8))
+
+            while len(binary) < 8:
+                binary.append('0')
+
+            if binary[index] == '0':
+                binary[index] = '1'
+            elif binary[index] == '1':
+                binary[index] = '0'
+
+            combine_binary = ''.join(binary)
+
+            integer = int(combine_binary, 2)
+
+            payload[loc] = payload[loc]
+
+            
+        return payload
+
 
     def determine_content(self, f):
         if self.file_type == 'json':
-            return json.load(f)  
-
+            return json.load(f)
+ 
         elif self.file_type == 'xml':
-            tree = ET.parse(f)
-            return deepcopy(tree.getroot())
+            return ET.parse(f).getroot()
 
         elif self.file_type == 'csv':
             return f.read()
@@ -191,4 +259,3 @@ class Mutation_Fuzzer():
             
         elif self.file_type == 'jpeg':
             return bytearray(f.read())
-                

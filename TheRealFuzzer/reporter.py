@@ -3,7 +3,10 @@ import os
 class Reporter:
     def __init__(self):
         self.counter = 0
-        
+    
+    def send_to_stdout(self, message):
+        print(message)
+
     def write(self, message):
         self.f.write(f'\n{message}\n')
     

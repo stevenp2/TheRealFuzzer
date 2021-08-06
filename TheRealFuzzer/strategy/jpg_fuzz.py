@@ -60,7 +60,7 @@ class JPG_Fuzzer():
     def bit_flip(self):
         self.reporter.set_strategy('bit_flip')
         
-        for j in range(0, 200):
+        for j in range(0, 1000):
             payload = self.input
 
 
@@ -95,7 +95,7 @@ class JPG_Fuzzer():
     def byte_flip(self):
         self.reporter.set_strategy('byte_flip')
         
-        for j in range(0, 200):
+        for j in range(0, 1000):
             payload = self.input
 
 
@@ -114,7 +114,7 @@ class JPG_Fuzzer():
     def overwrite_byte_sequences(self):
         self.reporter.set_strategy('overwrite_byte_sequences')
 
-        for i in range(0, 200):
+        for i in range(0, 1000):
 
             payload = self.input
 

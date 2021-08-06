@@ -14,11 +14,11 @@ class CSV_Fuzzer():
 
     def strategies(self):
         return [
-            self.negate_everything(),
-            self.vary_delimiters(),
-            self.expand_file(),
-            self.oob_ints(),
-            self.bit_flip(),
+            # self.negate_everything(),
+            # self.vary_delimiters(),
+            # self.expand_file(),
+            # self.oob_ints(),
+            # self.bit_flip(),
         ]
 
     # Simple strategy - have fun with delimiters
