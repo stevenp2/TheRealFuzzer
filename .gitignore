@@ -4,3 +4,4 @@ bad.txt
 *.pyc
 log_report/
 testfiles/
+tmp/

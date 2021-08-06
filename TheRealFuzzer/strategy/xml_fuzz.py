@@ -5,9 +5,12 @@ import re
 import random
 
 class XML_Fuzzer():
-    def __init__(self, Runner, root):
+    def __init__(self, Runner, root, reporter):
         self.runner = Runner
         self.root = root
+        self.reporter = reporter
+
+        self.reporter.set_fuzzer('XML Fuzzer')
 
     def strategies(self):
         return [
@@ -21,6 +24,7 @@ class XML_Fuzzer():
     # read_xml will go through each of the attributes and 'edit' the attribute, and text
     # the 'edit' will be based on how we want to fuzz it
     def add_tags(self, num_tags):
+        self.reporter.set_strategy('add_tags')
 
         root_cpy = deepcopy(self.root)    
 
@@ -34,6 +38,7 @@ class XML_Fuzzer():
                 return payload
 
     def edit_elements_format_str(self):
+        self.reporter.set_strategy('edit_elements_format_str')
 
         # root_cpy = deepcopy(self.root)    
 
@@ -56,6 +61,8 @@ class XML_Fuzzer():
             return payload
 
     def edit_elements_overflow(self):
+        self.reporter.set_strategy('edit_elements_overflow')
+
         for child in self.root.iter():
             if child.attrib:
                 for attrib in child.attrib:
@@ -82,6 +89,7 @@ class XML_Fuzzer():
 
 
     def bombard_tag(self):
+        self.reporter.set_strategy('bombard_tag')
 
         wide_ML = ''
 
@@ -93,6 +101,7 @@ class XML_Fuzzer():
 
 
     def shuffle_elements(self, num):
+        self.reporter.set_strategy('shuffle_elements')
         
         root_cpy = deepcopy(self.root)
 
