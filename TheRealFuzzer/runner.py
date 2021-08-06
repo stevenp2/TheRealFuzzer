@@ -1,5 +1,6 @@
 import subprocess
 import os, signal
+import re
 # import multiprocessing as MP
 
 
@@ -30,13 +31,33 @@ class Runner:
                                                 #in_asm,nochain
         # NOTE -d in_asm doesn not trace for each executed instruction --> traces which instructions are translated
         #      -d cpu, or -d exec with nochain is what we want to use
-        process_as = [f'qemu-{self.arch}', '-d', 'exec' ,'-D', '../tmp/log', f'{self.binary}'] if self.arch else self.binary
+        process_as = [f'qemu-{self.arch}', '-d', 'exec,nochain' ,'-D', '../tmp/program_exec', f'{self.binary}'] if self.arch else self.binary
         p = subprocess.Popen(process_as, 
                                 stdin  = subprocess.PIPE, 
                                 stdout = subprocess.DEVNULL,
                                 stderr = subprocess.DEVNULL)
 
         p.communicate(payload)
+
+        with open('../tmp/program_exec') as f:
+            for line in f.readlines():
+                function = re.search(r"\s*([\S]+)$", line)
+                if function != None:
+                    function = function[0]
+                    address = re.search(r"/(.*)/", line)[1]
+                    
+                    if function not in self.coverage_func:
+                        self.coverage_func.append(function)
+
+
+                    address_list = self.coverage_func_addr.get(function, address)
+                    if address_list == address:
+                        self.coverage_func_addr[function] = [address_list]
+
+                    else:
+                        if address not in address_list:
+                            address_list.append(address)
+                
 
         return self.process_return_code(p, payload)
 
@@ -67,3 +88,7 @@ class Runner:
 
     def set_reporter(self, reporter):
         self.reporter = reporter
+
+    def set_coverage(self):
+        self.coverage_func_addr = {}
+        self.coverage_func = []

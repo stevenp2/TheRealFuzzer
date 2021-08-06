@@ -67,8 +67,6 @@ class JPG_Fuzzer():
             num_of_flips = int((len(payload) - 4) * 0.005)
             indices_to_flip = range(4, (len(payload) - 4)) # accounts for SOI and EOI
 
-            chosen_indexes = []
-
             for i in range(0, num_of_flips):
                 loc = random.choice(indices_to_flip)
 

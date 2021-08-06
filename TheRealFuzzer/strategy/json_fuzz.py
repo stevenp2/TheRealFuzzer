@@ -13,10 +13,10 @@ class JSON_Fuzzer():
 
     def strategies(self):
         return [
-            self.expand_file(),
-            self.negate_input(),
-            self.do_bad_to_value(),
-            self.expand_file_bad(),
+            # self.expand_file(),
+            # self.negate_input(),
+            # self.do_bad_to_value(),
+            # self.expand_file_bad(),
         ]
 
     # Simple strategy - expand file size from empty

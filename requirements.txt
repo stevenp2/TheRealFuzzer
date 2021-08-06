@@ -1,1 +1,2 @@
 sudo apt install qemu-user
+pip3 install matplotlib

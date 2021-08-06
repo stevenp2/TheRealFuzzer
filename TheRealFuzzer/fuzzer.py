@@ -16,6 +16,7 @@ from strategy.json_fuzz import JSON_Fuzzer
 from strategy.xml_fuzz import XML_Fuzzer
 from strategy.txt_fuzz import TXT_Fuzzzer
 from strategy.jpg_fuzz import JPG_Fuzzer
+from strategy.mutation import Mutation_Fuzzer
 
 from copy import deepcopy
 from checker import check_type, check_arch
@@ -37,7 +38,8 @@ class Fuzzer():
         if not os.path.exists(directory):
             os.makedirs(directory)
 
-        reporter.set_file(open(directory + '/log', 'w'))
+        fp = open(directory + '/log', 'w')
+        reporter.set_file(fp)
 
         self.runner.set_binary(binary)
         self.runner.set_input_file(input_file)
@@ -48,6 +50,7 @@ class Fuzzer():
         if file_type == 'json':
             with open(input_file, 'r') as f:
                 content = json.load(f)  
+                f.close()
                 outputs += JSON_Fuzzer(self.runner, content, reporter).strategies()
 
         elif file_type == 'xml':
@@ -55,16 +58,19 @@ class Fuzzer():
                 tree = ET.parse(f)
                 # to not have the state of the original xml file adjusted
                 content = deepcopy(tree.getroot())
+                f.close()
                 outputs += XML_Fuzzer(self.runner, content, reporter).strategies()
 
         elif file_type == 'csv':
             with open(input_file, 'r') as f:
                 content = f.read()
+                f.close()
                 outputs += CSV_Fuzzer(self.runner, content, reporter).strategies()
 
         elif file_type == 'txt':
             with open(input_file, 'r') as f:
                 content = f.read()
+                f.close()
                 outputs += TXT_Fuzzzer(self.runner, content, reporter).strategies()
 
         # NOTE for the case of pdf and jpg where f.read() cannot decode
@@ -72,16 +78,11 @@ class Fuzzer():
         elif file_type == 'jpeg':
             with open(input_file, 'rb') as f:
                 content = bytearray(f.read())
+                f.close()
                 outputs += JPG_Fuzzer(self.runner, content, reporter).strategies()
-
-        # else:
-        #     with open(input_file, 'rb') as f:
-        #         self.runner.initial_coverage(f.read())
 
         outputs = list(filter(None, outputs))
         bad_input = outputs[0] if outputs else None
-
-        # Fall back if cannot fuzz using stage-1 fuzzing --> mutation based fuzzing
 
         if bad_input:
             if isinstance(bad_input, bytes):
@@ -89,8 +90,27 @@ class Fuzzer():
             else:
                 return bad_input.encode('utf-8')
 
-        reporter.write('rip nothing found')
+        # Fall back if cannot fuzz using stage-1 fuzzing --> mutation based fuzzing
+        else:
+            bad_input = None
 
+            if file_type == 'jpeg':
+                with open(input_file, 'r') as f:
+                    mutation = Mutation_Fuzzer(self.runner, f, reporter, file_type)
+                    bad_input = mutation.initiate()
+
+            else:
+                with open(input_file, 'r') as f:
+                    mutation = Mutation_Fuzzer(self.runner, f, reporter, file_type)
+                    bad_input = mutation.initiate()
+
+            if bad_input:
+                if isinstance(bad_input, bytes):
+                    return bad_input
+                else:
+                    return bad_input.encode('utf-8')
+
+        fp.close()
 
 
 def main(binary, input_file):
@@ -106,7 +126,7 @@ def main(binary, input_file):
 
 if __name__ == "__main__":
 
-    test_path = "../testfiles/"
+    test_path = '' # "../testfiles/"
 
     if len(sys.argv) != 3:
         print(f"Usage: {sys.argv[0]} [binary] [input_file]")

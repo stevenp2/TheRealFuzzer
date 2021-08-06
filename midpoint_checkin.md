@@ -4,6 +4,10 @@
 ```
 sudo apt install qemu-user
 ```
+## Run:
+```
+./fuzzer.py [location_of_binary] [location_of_input]
+```
 
 
 # Fuzzer Description:

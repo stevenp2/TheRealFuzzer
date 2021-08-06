@@ -1,3 +1,5 @@
+import math
+
 def bad_strings():
     return [
         "%s",
@@ -5,6 +7,27 @@ def bad_strings():
         "{'why is a': 'json here?'}",
         "<h1>",
         "A"*(2**10+100), # overflow
+        "\'",
+        "\"",
+        "🐒",
+        "水",
+        "-1",
+        "3.1415",
+        "$",
+        "<",
+        ">",
+        "{",
+        "}",
+        "<html></html>",
+        str(-1),
+        str(-2**8+1),
+        str(2**8+1),
+        str(-2**16+1),
+        str(2**16+1),
+        str(2**32+1),
+        str(-2**32-1),
+        str(2**64+1),
+        str(-2**64-1),
     ]
 
 def bad_integers():
@@ -18,7 +41,7 @@ def bad_integers():
         -2**32-1,
         2**64+1,
         -2**64-1,
-
+        math.pi
     ]
 
 def magic_numbers():
