@@ -1,5 +1,6 @@
 import random
 from .bad_stuff import magic_numbers
+import time
 
 # https://h0mbre.github.io/Fuzzing-Like-A-Caveman/
 class JPG_Fuzzer():
@@ -9,8 +10,11 @@ class JPG_Fuzzer():
         self.reporter = reporter
 
         self.reporter.set_fuzzer('JPG Fuzzer')
+        self.reporter.send_to_stdout('JPG file detected - applying JPG Fuzzer')
 
     def strategies(self):
+        self.reporter.send_to_stdout('Applying TXT strategies now')
+        time.sleep(0.5)
         return [
             self.increment(),
             self.decrement(),
@@ -23,6 +27,7 @@ class JPG_Fuzzer():
 
     def increment(self):
         self.reporter.set_strategy('increment')
+        self.reporter.send_to_stdout('Stragegy: increment')
         
         for j in range(0, 200):
             payload = self.input
@@ -41,6 +46,7 @@ class JPG_Fuzzer():
 
     def decrement(self):
         self.reporter.set_strategy('decrement')
+        self.reporter.send_to_stdout('Stragegy: decrement')
         
         for j in range(0, 200):
             payload = self.input
@@ -59,6 +65,7 @@ class JPG_Fuzzer():
 
     def bit_flip(self):
         self.reporter.set_strategy('bit_flip')
+        self.reporter.send_to_stdout('Stragegy: bit_flip')
         
         for j in range(0, 1000):
             payload = self.input
@@ -94,6 +101,7 @@ class JPG_Fuzzer():
 
     def byte_flip(self):
         self.reporter.set_strategy('byte_flip')
+        self.reporter.send_to_stdout('Stragegy: byte_flip')
         
         for j in range(0, 1000):
             payload = self.input
@@ -113,6 +121,8 @@ class JPG_Fuzzer():
 
     def overwrite_byte_sequences(self):
         self.reporter.set_strategy('overwrite_byte_sequences')
+        self.reporter.send_to_stdout('Stragegy: overwrite_byte_sequences')
+
 
         for i in range(0, 1000):
 
@@ -175,6 +185,7 @@ class JPG_Fuzzer():
 
     def expand_file(self):
         self.reporter.set_strategy('expand_file')
+        self.reporter.send_to_stdout('Stragegy: expand_file')
 
         content = self.input
         get_SOI = content[:4]

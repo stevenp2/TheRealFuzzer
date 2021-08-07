@@ -3,6 +3,7 @@ import csv
 import random
 import re
 from .bad_stuff import bad_integers
+import time
 
 class TXT_Fuzzzer():
     def __init__(self, Runner, content, reporter):
@@ -11,8 +12,11 @@ class TXT_Fuzzzer():
         self.reporter = reporter
 
         self.reporter.set_fuzzer('TXT Fuzzer')
+        self.reporter.send_to_stdout('TXT file detected - applying TXT Fuzzer')
 
     def strategies(self):
+        self.reporter.send_to_stdout('Applying XML strategies now')
+        time.sleep(0.5)
         return [
             self.expand_file(),
             self.oob_ints(),
@@ -22,6 +26,7 @@ class TXT_Fuzzzer():
 
     def expand_file(self):
         self.reporter.set_strategy('expand_file')
+        self.reporter.send_to_stdout('Stragegy: expand_file')
 
         payload = ''
 
@@ -40,6 +45,7 @@ class TXT_Fuzzzer():
 
     def oob_ints(self):
         self.reporter.set_strategy('oob_ints')
+        self.reporter.send_to_stdout('Stragegy: oob_ints')
         
         # regex
         integers = re.findall(r'[0-9]+', self.content)
@@ -58,6 +64,7 @@ class TXT_Fuzzzer():
 
     def negate_everything(self):
         self.reporter.set_strategy('negate_everything')
+        self.reporter.send_to_stdout('Stragegy: negate_everything')
 
         c = csv.reader(self.content)
         payload = []
@@ -81,6 +88,7 @@ class TXT_Fuzzzer():
 
     def bit_flip(self):
         self.reporter.set_strategy('bit_flip')
+        self.reporter.send_to_stdout('Stragegy: bit_flip')
 
         for j in range(0, 300):
 

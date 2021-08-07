@@ -8,6 +8,7 @@ import json
 import xml.etree.ElementTree as ET
 import exifread
 import matplotlib.pyplot as plt
+import time
 
 import runner as r
 from reporter import Reporter
@@ -46,6 +47,8 @@ class Fuzzer():
         self.runner.set_arch(check_arch(binary))
         self.runner.set_reporter(reporter)
 
+        reporter.send_to_stdout('Preparting to Fuzz')
+        time.sleep(0.5)
 
         if file_type == 'json':
             with open(input_file, 'r') as f:
@@ -126,6 +129,19 @@ def main(binary, input_file):
     runner = r.Runner()
     fuzzer = Fuzzer(binary, input_file, runner)
 
+    art = """
+        ________________________________________
+       / Welcome, fellow 🐒 to The Real Fuzzer  \\
+       \ which may or may not be real           /
+        ----------------------------------------
+                      \      ;,//;,    ,;/
+                       \    o:::::::;;///
+                        `-  >::::::::;;\\\\
+                            ''\\\\\'" ';\\
+
+    """
+
+    print(art)
 
     payload = fuzzer.run()
     if payload != None:
@@ -135,14 +151,12 @@ def main(binary, input_file):
 
 if __name__ == "__main__":
 
-    test_path = '' # "../testfiles/"
-
     if len(sys.argv) != 3:
         print(f"Usage: {sys.argv[0]} [binary] [input_file]")
         exit(0)
 
-    binary = test_path + sys.argv[1]   #NOTE: change to binary = sys.argv[1]
-    input_file = test_path + sys.argv[2] #NOTE: change to input_file = sys.argv[2]
+    binary = sys.argv[1]   
+    input_file = sys.argv[2] 
 
     if not (os.path.isfile(binary)):
         sys.exit("binary does not exist")

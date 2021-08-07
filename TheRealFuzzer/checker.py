@@ -86,6 +86,23 @@ def check_type(text):
         elif _is_jpeg(text):
             return 'jpeg'
         elif _is_elf(text):
+            print(to_print)
+            exit()
             return 'elf'
         elif _is_pdf(text):
+            print(to_print)
+            exit()
             return 'pdf'
+
+
+
+to_print = """
+  ___________________________________________
+< soz fuzzer not skilled enough yet for this  >
+  -------------------------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\\
+                ||----w |
+                ||     |
+"""
