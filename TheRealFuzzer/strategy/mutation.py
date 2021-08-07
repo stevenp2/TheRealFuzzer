@@ -64,6 +64,7 @@ class Mutation_Fuzzer():
         bad_str =  bad_stuff.bad_strings()
         bad_ints = bad_stuff.bad_integers()
         magic_numbers = bad_stuff.bad_integers()
+        alpha_num = bad_stuff.alpha_num()
 
         while self.payloads != []:
             total = self.total_addr() # total of previous
@@ -79,7 +80,7 @@ class Mutation_Fuzzer():
             elif self.file_type == 'csv':
                 payload = self.csv_mutatation(bad_str, self.payloads[len(self.payloads) - 1])
             elif self.file_type == 'txt':
-                payload = self.txt_mutation(bad_str, self.payloads[len(self.payloads) - 1])
+                payload = self.txt_mutation(alpha_num + bad_str, self.payloads[len(self.payloads) - 1])
             elif self.file_type == 'jpeg':
                 # payload = self.csv_mutatation(bad_str, self.payloads[len(self.payloads) - 1])
                 pass
@@ -204,12 +205,12 @@ class Mutation_Fuzzer():
 
         return string
 
-    def txt_mutation(self, bad_str, content):
+    def txt_mutation(self, bad_stuff, content):
 
         random_index = random.choice(range(0, len(content)))
-        random_replacement = random.choice(range(0, len(bad_str)))
+        random_replacement = random.choice(range(0, len(bad_stuff)))
 
-        payload = content.replace(content[random_index], bad_str[random_replacement])
+        payload = content.replace(content[random_index], bad_stuff[random_replacement])
         
         return payload
 

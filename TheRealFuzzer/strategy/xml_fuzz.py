@@ -3,6 +3,7 @@ from xml.dom import minidom
 from copy import deepcopy
 import re
 import random
+import time
 
 class XML_Fuzzer():
     def __init__(self, Runner, root, reporter):
@@ -11,8 +12,11 @@ class XML_Fuzzer():
         self.reporter = reporter
 
         self.reporter.set_fuzzer('XML Fuzzer')
+        self.reporter.send_to_stdout('XML file detected - applying XML Fuzzer')
 
     def strategies(self):
+        self.reporter.send_to_stdout('Applying XML strategies now')
+        time.sleep(0.5)
         return [
             self.add_tags(100),
             self.edit_elements_format_str(),
@@ -25,6 +29,7 @@ class XML_Fuzzer():
     # the 'edit' will be based on how we want to fuzz it
     def add_tags(self, num_tags):
         self.reporter.set_strategy('add_tags')
+        self.reporter.send_to_stdout('Stragegy: add_tags')
 
         root_cpy = deepcopy(self.root)    
 
@@ -39,6 +44,7 @@ class XML_Fuzzer():
 
     def edit_elements_format_str(self):
         self.reporter.set_strategy('edit_elements_format_str')
+        self.reporter.send_to_stdout('Stragegy: edit_elements_format_str')
 
         # root_cpy = deepcopy(self.root)    
 
@@ -62,6 +68,7 @@ class XML_Fuzzer():
 
     def edit_elements_overflow(self):
         self.reporter.set_strategy('edit_elements_overflow')
+        self.reporter.send_to_stdout('Stragegy: edit_elements_overflow')
 
         for child in self.root.iter():
             if child.attrib:
@@ -90,6 +97,7 @@ class XML_Fuzzer():
 
     def bombard_tag(self):
         self.reporter.set_strategy('bombard_tag')
+        self.reporter.send_to_stdout('Stragegy: bombard_tag')
 
         wide_ML = ''
 
@@ -102,6 +110,7 @@ class XML_Fuzzer():
 
     def shuffle_elements(self, num):
         self.reporter.set_strategy('shuffle_elements')
+        self.reporter.send_to_stdout('Stragegy: shuffle_elements')
         
         root_cpy = deepcopy(self.root)
 

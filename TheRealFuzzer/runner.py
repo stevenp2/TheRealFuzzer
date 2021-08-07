@@ -60,6 +60,7 @@ class Runner:
         elif p.returncode == -11:
             self.return_codes['-11'] += 1
             self.reporter.bad_found()
+            self.reporter.send_to_stdout("👀 bad found using this strategy\n")
 
             return (True, payload)
 

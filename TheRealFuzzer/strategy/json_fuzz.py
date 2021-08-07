@@ -2,6 +2,7 @@ import json
 import base64
 import random
 from . import bad_stuff
+import time
 
 class JSON_Fuzzer():
     def __init__(self, Runner, content, reporter):
@@ -10,8 +11,11 @@ class JSON_Fuzzer():
         self.reporter = reporter
 
         self.reporter.set_fuzzer('JSON Fuzzer')
+        self.reporter.send_to_stdout('JSON file detected - applying JSON Fuzzer')
 
     def strategies(self):
+        self.reporter.send_to_stdout('Applying TXT strategies now')
+        time.sleep(0.5)
         return [
             self.expand_file(),
             self.negate_input(),
@@ -22,6 +26,7 @@ class JSON_Fuzzer():
     # Simple strategy - expand file size from empty
     def expand_file(self):
         self.reporter.set_strategy('expand_file')
+        self.reporter.send_to_stdout('Stragegy: expand_file')
 
         payload = ''
         # Empty file
@@ -42,6 +47,7 @@ class JSON_Fuzzer():
     #      value rather than the key
     def negate_input(self):
         self.reporter.set_strategy('negate_input')
+        self.reporter.send_to_stdout('Stragegy: negate_input')
 
         payload = {}
         new_value = ''
@@ -65,6 +71,7 @@ class JSON_Fuzzer():
     # Accounts for overflow by adding 'bad' values 
     def do_bad_to_value(self):
         self.reporter.set_strategy('do_bad_to_value')
+        self.reporter.send_to_stdout('Stragegy: do_bad_to_value')
 
 
         def process_func(Runner, content):
@@ -92,6 +99,7 @@ class JSON_Fuzzer():
     # expand the file while creating 'bad' key-value pairs
     def expand_file_bad(self):
         self.reporter.set_strategy('expand_file_bad')
+        self.reporter.send_to_stdout('Stragegy: expand_file_bad')
 
         bad_ints = bad_stuff.bad_integers()
         bad_str =  bad_stuff.bad_strings()
