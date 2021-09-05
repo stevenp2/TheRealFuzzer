@@ -161,7 +161,7 @@ if __name__ == "__main__":
     if not (os.path.isfile(binary)):
         sys.exit("binary does not exist")
 
-    if not (os.path.isfile(binary)):
+    if not (os.path.isfile(input_file)):
         sys.exit("input_file does not exist")
 
     main(binary, input_file)
