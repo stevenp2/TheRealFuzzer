@@ -10,6 +10,20 @@ pip3 install matplotlib
 ./fuzzer.py [location_of_binary] [location_of_input]
 ```
 
+# Assumptions
+- All binaries will have a vulnerability.
+- All binaries will function normally (return 0, not crash, no errors) when the relevant input.txt is passed into them.
+- All binaries will expect input in one of the following formats:
+    - Sub Plaintext (multiline)
+    - JSON
+    - XML
+    - CSV
+    - JPEG
+    - ELF
+    - PDF
+- The input. txt provided will be a valid form of one of these text formats.
+- All binaries will be 32 bit linux ELF's (except xml3).
+- All vulnerabilities will result in memory corruption.
 
 # Fuzzer Description:
 ## How the Fuzzer Works
